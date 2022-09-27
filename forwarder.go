@@ -84,11 +84,14 @@ func forwardersWithStreams(ctx context.Context, options []*Option, config *restc
 	carries := make([]*carry, len(podOptions))
 
 	var g errgroup.Group
+	var localPorts []int
 
 	for index, option := range podOptions {
 		index := index
 		stopCh := make(chan struct{}, 1)
 		readyCh := make(chan struct{})
+
+		localPorts = append(localPorts, option.LocalPort)
 
 		req := &portForwardAPodRequest{
 			RestConfig: config,
@@ -133,6 +136,7 @@ func forwardersWithStreams(ctx context.Context, options []*Option, config *restc
 			}
 			return pfs, nil
 		},
+		LocalPorts: localPorts,
 	}
 
 	ret.Wait = func() {

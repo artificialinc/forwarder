@@ -39,7 +39,8 @@ type Option struct {
 }
 
 type Result struct {
-	Close func()                                        // close the port forwarding
-	Ready func() ([][]portforward.ForwardedPort, error) // block till the forwarding ready
-	Wait  func()                                        // block and listen IOStreams close signal
+	Close      func()                                        // close the port forwarding
+	Ready      func() ([][]portforward.ForwardedPort, error) // block till the forwarding ready
+	Wait       func()                                        // block and listen IOStreams close signal
+	LocalPorts []int
 }
