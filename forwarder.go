@@ -55,12 +55,22 @@ func WithForwarders(ctx context.Context, options []*Option, kubeconfigPath strin
 }
 
 // It is to forward port with restclient.Config.
-func WithRestConfig(ctx context.Context, options []*Option, config *restclient.Config) (*Result, error) {
-	return forwarders(ctx, options, config)
+func WithRestConfig(ctx context.Context, options []*Option, config *restclient.Config, streams genericclioptions.IOStreams) (*Result, error) {
+	return forwardersWithStreams(ctx, options, config, streams)
+}
+
+func forwarders(ctx context.Context, options []*Option, config *restclient.Config) (*Result, error) {
+	stream := genericclioptions.IOStreams{
+		In:     os.Stdin,
+		Out:    os.Stdout,
+		ErrOut: os.Stderr,
+	}
+
+	return forwardersWithStreams(ctx, options, config, stream)
 }
 
 // It is to forward port for k8s cloud services.
-func forwarders(ctx context.Context, options []*Option, config *restclient.Config) (*Result, error) {
+func forwardersWithStreams(ctx context.Context, options []*Option, config *restclient.Config, stream genericclioptions.IOStreams) (*Result, error) {
 	newOptions, err := parseOptions(options)
 	if err != nil {
 		return nil, err
@@ -69,12 +79,6 @@ func forwarders(ctx context.Context, options []*Option, config *restclient.Confi
 	podOptions, err := handleOptions(ctx, newOptions, config)
 	if err != nil {
 		return nil, err
-	}
-
-	stream := genericclioptions.IOStreams{
-		In:     os.Stdin,
-		Out:    os.Stdout,
-		ErrOut: os.Stderr,
 	}
 
 	carries := make([]*carry, len(podOptions))
