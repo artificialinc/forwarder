@@ -99,6 +99,14 @@ func handleOptions(ctx context.Context, options []*Option, config *restclient.Co
 				return fmt.Errorf("no such service: %+v", option.ServiceName)
 			}
 
+			// Translate port to target port
+			for _, port := range svc.Spec.Ports {
+				if port.Port == int32(option.RemotePort) {
+					option.RemotePort = int(port.TargetPort.IntVal)
+					break
+				}
+			}
+
 			labels := []string{}
 			for key, val := range svc.Spec.Selector {
 				labels = append(labels, key+"="+val)
