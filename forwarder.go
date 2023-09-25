@@ -37,7 +37,7 @@ func WithForwardersEmbedConfig(ctx context.Context, options []*Option, kubeconfi
 		return nil, err
 	}
 
-	return forwarders(ctx, options, config)
+	return forwarders(ctx, options, config, nil)
 }
 
 // It is to forward port for k8s cloud services.
@@ -54,16 +54,21 @@ func WithForwarders(ctx context.Context, options []*Option, kubeconfigPath strin
 		return nil, err
 	}
 
-	return forwarders(ctx, options, config)
+	return forwarders(ctx, options, config, nil)
 }
 
 // It is to forward port with restclient.Config.
 func WithRestConfig(ctx context.Context, options []*Option, config *restclient.Config) (*Result, error) {
-	return forwarders(ctx, options, config)
+	return forwarders(ctx, options, config, nil)
+}
+
+// It is to forward port with restclient.Config and override streams
+func WithRestConfigAndStream(ctx context.Context, options []*Option, config *restclient.Config, stream *genericclioptions.IOStreams) (*Result, error) {
+	return forwarders(ctx, options, config, stream)
 }
 
 // It is to forward port for k8s cloud services.
-func forwarders(ctx context.Context, options []*Option, config *restclient.Config) (*Result, error) {
+func forwarders(ctx context.Context, options []*Option, config *restclient.Config, stream *genericclioptions.IOStreams) (*Result, error) {
 	newOptions, err := parseOptions(options)
 	if err != nil {
 		return nil, err
@@ -74,10 +79,12 @@ func forwarders(ctx context.Context, options []*Option, config *restclient.Confi
 		return nil, err
 	}
 
-	stream := genericclioptions.IOStreams{
-		In:     os.Stdin,
-		Out:    os.Stdout,
-		ErrOut: os.Stderr,
+	if stream == nil {
+		stream = &genericclioptions.IOStreams{
+			In:     os.Stdin,
+			Out:    os.Stdout,
+			ErrOut: os.Stderr,
+		}
 	}
 
 	carries := make([]*carry, len(podOptions))
@@ -94,7 +101,7 @@ func forwarders(ctx context.Context, options []*Option, config *restclient.Confi
 			Pod:        option.Pod,
 			LocalPort:  option.LocalPort,
 			PodPort:    option.PodPort,
-			Streams:    stream,
+			Streams:    *stream,
 			StopCh:     stopCh,
 			ReadyCh:    readyCh,
 		}
