@@ -74,17 +74,17 @@ func forwarders(ctx context.Context, options []*Option, config *restclient.Confi
 		return nil, err
 	}
 
-	podOptions, err := handleOptions(ctx, newOptions, config)
-	if err != nil {
-		return nil, err
-	}
-
 	if stream == nil {
 		stream = &genericclioptions.IOStreams{
 			In:     os.Stdin,
 			Out:    os.Stdout,
 			ErrOut: os.Stderr,
 		}
+	}
+
+	podOptions, err := handleOptions(ctx, newOptions, config, *stream)
+	if err != nil {
+		return nil, err
 	}
 
 	carries := make([]*carry, len(podOptions))

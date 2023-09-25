@@ -7,6 +7,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -63,7 +64,7 @@ func parseOptions(options []*Option) ([]*Option, error) {
 	return newOptions, nil
 }
 
-func handleOptions(ctx context.Context, options []*Option, config *restclient.Config) ([]*PodOption, error) {
+func handleOptions(ctx context.Context, options []*Option, config *restclient.Config, stream genericclioptions.IOStreams) ([]*PodOption, error) {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -113,7 +114,7 @@ func handleOptions(ctx context.Context, options []*Option, config *restclient.Co
 			}
 			pod := pods.Items[0]
 
-			fmt.Printf("Forwarding service: %v to pod %v ...\n", option.ServiceName, pod.Name)
+			fmt.Fprintf(stream.Out, "Forwarding service: %v to pod %v ...\n", option.ServiceName, pod.Name)
 
 			podOptions[index] = buildPodOption(option, &pod)
 			return nil
